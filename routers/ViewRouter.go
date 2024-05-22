@@ -1,0 +1,14 @@
+package routers
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+func ViewRouterInit(r *gin.Engine) {
+	viewRouter := r.Group("/view")
+	{
+		viewRouter.GET("/upload", func(ctx *gin.Context) { ctx.HTML(http.StatusOK, "UpLoadView.html", gin.H{}) })
+	}
+}

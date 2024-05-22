@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>上传</title>
+</head>
+<body>
+    <div style="display: flex;align-items: center;justify-content: center;">
+        <P style="font-size:30px;border: 5px;">图片上传</P>
+    </div>
+    <div style="display: flex;align-items: center;justify-content: center;">
+        <div style="width: 20%;background-color: pink;display: flex;align-items: center;justify-content: center;padding-bottom: 10px;padding-top: 5px;border-radius: 5px;margin-top: 20px;">
+            <form action="/api/upload" method="post" enctype="multipart/form-data" style="width: 200px;">
+                <p style="line-height: 0px;">图片:</p>
+                <input type="file" name="img">
+                <p style="line-height: 0px;">详情:</p>
+                <input type="text" name="info" placeholder="图片名称(要加上文件后缀)">
+                <p style="line-height: 0px;">类型:</p>
+                <input type="text" name="type">
+                <br>
+                阿里云OSS:<input type="checkbox" name="source" value="oss"/>
+                <br>
+                <input type="submit" value="上传">
+            </form>
+        </div>
+    </div>
+</body>
+</html>

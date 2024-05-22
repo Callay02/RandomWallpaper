@@ -1,0 +1,15 @@
+server:
+  host: 127.0.0.1
+  port: 8080
+  imgsavepath: 
+mysql:
+  host: 127.0.0.1
+  port: 3306
+  dbname: image_db
+  username: root
+  password: root
+oss:
+  endpoint: https://oss-cn-hangzhou.aliyuncs.com
+  bucket: 
+  accessKeyID: 
+  accessKeySecret: 
