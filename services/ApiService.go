@@ -42,16 +42,12 @@ func (ApiService) Random(ctx *gin.Context) {
 func (ApiService) UpLoad(ctx *gin.Context) {
 	var image models.Image
 
-	if ctx.PostForm("source") == "oss" {
-		image.Source = "oss"
-	} else {
-		image.Source = "local"
-	}
 	if uid, ok := ctx.Get("uid"); ok {
 		if v, ok := uid.(int); ok {
 			image.User = v
 		}
 	}
+	image.Source = ctx.PostForm("source")
 	image.Info = ctx.PostForm("info")
 	image.Type = ctx.PostForm("type")
 	image.UpdateTime = strconv.FormatInt(time.Now().Unix(), 10)
@@ -59,14 +55,7 @@ func (ApiService) UpLoad(ctx *gin.Context) {
 
 	fh, _ := ctx.FormFile("img")
 
-	switch image.Source {
-	case "local":
-		image.Url = config.Cfg.Server.ImgSavePath + "/" + image.Type + "/" + image.UpdateTime + "-" + image.Info
-		if err := ctx.SaveUploadedFile(fh, image.Url); err != nil {
-			image.State = 0
-			return
-		}
-	case "oss":
+	if image.Source == "oss" {
 		//转为文件流
 		f, err := fh.Open()
 		if err != nil {
@@ -76,6 +65,15 @@ func (ApiService) UpLoad(ctx *gin.Context) {
 		//执行上传阿里云OSS
 		oss := utils.OSS{}
 		if err := oss.UpLoad(&image, f); err != nil {
+			image.State = 0
+			return
+		}
+		//fmt.Println(image.Url)
+	} else {
+		//本地
+		image.Source = "local"
+		image.Url = config.Cfg.Server.ImgSavePath + "/" + image.Type + "/" + image.UpdateTime + "-" + image.Info
+		if err := ctx.SaveUploadedFile(fh, image.Url); err != nil {
 			image.State = 0
 			return
 		}
