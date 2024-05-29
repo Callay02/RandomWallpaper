@@ -42,10 +42,10 @@ func (ApiService) Random(ctx *gin.Context) {
 func (ApiService) UpLoad(ctx *gin.Context) {
 	var image models.Image
 
-	if ctx.PostForm("source") == "" {
-		image.Source = "local"
+	if ctx.PostForm("source") == "oss" {
+		image.Source = "oss"
 	} else {
-		image.Source = ctx.PostForm("source")
+		image.Source = "local"
 	}
 	if uid, ok := ctx.Get("uid"); ok {
 		if v, ok := uid.(int); ok {
