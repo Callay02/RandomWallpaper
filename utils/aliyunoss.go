@@ -24,11 +24,13 @@ func init() {
 }
 
 func (OSS) UpLoad(image *model.Image, f multipart.File) error {
+
 	bucket, err := client.Bucket(config.Cfg.OSS.Bucket)
 	if err != nil {
 		fmt.Println("ERROR:", err)
 		return err
 	}
+
 	imgPath := image.Type + "/" + image.UpdateTime + "-" + image.Info
 	err = bucket.PutObject(imgPath, f)
 	if err != nil {

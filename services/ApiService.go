@@ -4,6 +4,7 @@ import (
 	"RandomWallpaper/config"
 	"RandomWallpaper/models"
 	"RandomWallpaper/utils"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -15,58 +16,57 @@ import (
 type ApiService struct {
 }
 
-func (api ApiService) Random(ctx *gin.Context) {
-	s := ctx.Query("source")
-	source := strings.Split(s, ",")[0]
-	t := ctx.Query("type")
-	imgType := strings.Split(t, ",")[0]
+func (ApiService) Random(ctx *gin.Context) {
+	var sourceSQL string
+	var typeSQL string
 	image := models.Image{}
 
-	if imgType == "" {
-		if source == "" {
-			utils.DB.Raw("select * from images where state = 1 order by rand() limit 1").Scan(&image)
-			if image.Source == "oss" {
-				ctx.Redirect(http.StatusMovedPermanently, image.Url)
-			} else {
-				ctx.File(image.Url)
-			}
-		} else if source == "local" {
-			utils.DB.Raw("select * from images where state = 1 and source = 'local' order by rand() limit 1").Scan(&image)
-			ctx.File(image.Url)
-		} else if source == "oss" {
-			utils.DB.Raw("select * from images where state = 1 and source = 'oss' order by rand() limit 1").Scan(&image)
-			ctx.Redirect(http.StatusMovedPermanently, image.Url)
-		}
-	} else {
-		if source == "" {
-			utils.DB.Raw("select * from images where state = 1 and type = ? order by rand() limit 1", imgType).Scan(&image)
-			if image.Source == "oss" {
-				ctx.Redirect(http.StatusMovedPermanently, image.Url)
-			} else {
-				ctx.File(image.Url)
-			}
-		} else if source == "local" {
-			utils.DB.Raw("select * from images where state = 1 and source = 'local' and type = ? order by rand() limit 1", imgType).Scan(&image)
-			ctx.File(image.Url)
-		} else if source == "oss" {
-			utils.DB.Raw("select * from images where state = 1 and source = 'oss' and type = ? order by rand() limit 1", imgType).Scan(&image)
-			ctx.Redirect(http.StatusMovedPermanently, image.Url)
-		}
+	if ctx.Query("source") != "" {
+		sourceSQL = fmt.Sprintf("and source = '%v'", strings.Split(ctx.Query("source"), ",")[0])
+	}
+	if ctx.Query("type") != "" {
+		typeSQL = fmt.Sprintf("and type = '%v'", strings.Split(ctx.Query("type"), ",")[0])
+	}
+	sql := fmt.Sprintf("select * from images where state = 1 %v %v order by rand() limit 1", sourceSQL, typeSQL)
+
+	utils.DB.Raw(sql).Scan(&image)
+
+	switch image.Source {
+	case "local":
+		ctx.File(image.Url)
+	case "oss":
+		ctx.Redirect(http.StatusMovedPermanently, image.Url)
 	}
 }
 
-func (api ApiService) UpLoad(ctx *gin.Context) {
+func (ApiService) UpLoad(ctx *gin.Context) {
 	var image models.Image
 
+	if ctx.PostForm("source") == "" {
+		image.Source = "local"
+	} else {
+		image.Source = ctx.PostForm("source")
+	}
+	if uid, ok := ctx.Get("uid"); ok {
+		if v, ok := uid.(int); ok {
+			image.User = v
+		}
+	}
 	image.Info = ctx.PostForm("info")
 	image.Type = ctx.PostForm("type")
-	image.Source = ctx.PostForm("source")
 	image.UpdateTime = strconv.FormatInt(time.Now().Unix(), 10)
 	image.State = 1
 
 	fh, _ := ctx.FormFile("img")
 
-	if image.Source == "oss" {
+	switch image.Source {
+	case "local":
+		image.Url = config.Cfg.Server.ImgSavePath + "/" + image.Type + "/" + image.UpdateTime + "-" + image.Info
+		if err := ctx.SaveUploadedFile(fh, image.Url); err != nil {
+			image.State = 0
+			return
+		}
+	case "oss":
 		//转为文件流
 		f, err := fh.Open()
 		if err != nil {
@@ -79,26 +79,17 @@ func (api ApiService) UpLoad(ctx *gin.Context) {
 			image.State = 0
 			return
 		}
-		//fmt.Println(image.Url)
-	} else {
-		//本地
-		image.Source = "local"
-		image.Url = config.Cfg.Server.ImgSavePath + "/" + image.Type + "/" + image.UpdateTime + "-" + image.Info
-		if err := ctx.SaveUploadedFile(fh, image.Url); err != nil {
-			image.State = 0
-			return
-		}
 	}
 
 	defer func() {
 		if image.State == 0 {
-			ctx.JSON(http.StatusOK, new(models.Result).Error("上传失败"))
+			ctx.JSON(http.StatusOK, new(utils.Result).Error("上传失败"))
 			return
 		}
 		if err := utils.DB.Create(image).Error; err != nil {
-			ctx.JSON(http.StatusOK, new(models.Result).Error("数据库存入失败"))
+			ctx.JSON(http.StatusOK, new(utils.Result).Error("数据库存入失败"))
 			return
 		}
-		ctx.JSON(http.StatusOK, new(models.Result).OK("上传成功"))
+		ctx.JSON(http.StatusOK, new(utils.Result).OK("上传成功"))
 	}()
 }

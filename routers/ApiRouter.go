@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"RandomWallpaper/config"
+	"RandomWallpaper/middlewares"
 	"RandomWallpaper/services"
 
 	"github.com/gin-gonic/gin"
@@ -8,13 +10,13 @@ import (
 
 func ApiRouterInit(r *gin.Engine) {
 	apiRouter := r.Group("/api")
+	validate := middlewares.Validate{}
+	if config.Cfg.Server.Token {
+		apiRouter.Use(validate.Token)
+	}
 	{
 		apiService := services.ApiService{}
-		apiRouter.GET("/random", func(ctx *gin.Context) {
-			go apiService.Random(ctx)
-		})
-		apiRouter.POST("/upload", func(ctx *gin.Context) {
-			go apiService.UpLoad(ctx)
-		})
+		apiRouter.GET("/random", apiService.Random)
+		apiRouter.POST("/upload", apiService.UpLoad)
 	}
 }

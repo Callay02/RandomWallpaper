@@ -6,6 +6,7 @@ type Image struct {
 	Type       string `json:"type"`
 	Source     string `json:"source"`
 	Url        string `json:"url"`
+	User       int    `json:"user"`
 	UpdateTime string `json:"update_time"`
 	State      int    `json:"state"`
 }

@@ -1,29 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上传</title>
-</head>
-<body>
-    <div style="display: flex;align-items: center;justify-content: center;">
-        <P style="font-size:30px;border: 5px;">图片上传</P>
-    </div>
-    <div style="display: flex;align-items: center;justify-content: center;">
-        <div style="width: 20%;background-color: pink;display: flex;align-items: center;justify-content: center;padding-bottom: 10px;padding-top: 5px;border-radius: 5px;margin-top: 20px;">
-            <form action="/api/upload" method="post" enctype="multipart/form-data" style="width: 200px;">
-                <p style="line-height: 0px;">图片:</p>
-                <input type="file" name="img">
-                <p style="line-height: 0px;">详情:</p>
-                <input type="text" name="info" placeholder="图片名称(要加上文件后缀)">
-                <p style="line-height: 0px;">类型:</p>
-                <input type="text" name="type">
-                <br>
-                阿里云OSS:<input type="checkbox" name="source" value="oss"/>
-                <br>
-                <input type="submit" value="上传">
-            </form>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片上传</title>
+  </head>
+
+  <body style="margin-left: 0px; margin-top: 0px">
+    <div
+      style="
+        background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+        height: 100vh;
+      "
+    >
+      <div style="display: flex; align-items: center; justify-content: center;padding-top: 100px;">
+        <p style="font-size: 30px; border: 5px">图片上传</p>
+      </div>
+      <div style="display: flex; align-items: center; justify-content: center">
+        <div
+          style="
+            width: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 10px;
+            padding-top: 5px;
+            border-radius: 5px;
+            margin-top: 20px;
+            backdrop-filter: blur(20px);
+            background-color: rgba(255, 255, 255, 0.6);
+          "
+        >
+          <form
+            action="/api/upload"
+            method="post"
+            enctype="multipart/form-data"
+            style="width: 200px;padding-top: 20px;padding-bottom: 20px;"
+          >
+          <p style="line-height: 0px">Token:</p>
+            <input
+              type="password"
+              name="token"
+              id="token"
+            />
+            <p style="line-height: 0px">图片:</p>
+            <div id="show-img"></div>
+
+            <input
+              type="file"
+              name="img"
+              id="img"
+              accept=".webp,.jpg,.jpeg,.png"
+            />
+            <p style="line-height: 0px">详情:</p>
+            <input
+              type="text"
+              name="info"
+              id="info"
+              placeholder="图片名称(要加上文件后缀)"
+            />
+            <p style="line-height: 0px">类型:</p>
+            <input type="text" name="type" />
+            <br />
+            阿里云OSS:<input type="checkbox" name="source" value="oss" />
+            <br />
+            <input style="margin-top: 5px;" type="submit" value="上传" />
+          </form>
         </div>
+      </div>
     </div>
-</body>
+    <script>
+      var img = document.getElementById("img");
+      img.onchange = function () {
+        var file = this.files;
+        var reader = new FileReader();
+        reader.readAsDataURL(file[0]);
+        reader.onload = function () {
+          var image = document.createElement("img");
+          image.width = "200";
+          image.src = reader.result;
+          var showPicture = document.getElementById("show-img");
+          showPicture.append(image);
+        };
+        var imgInfo = document.getElementById("info");
+        imgInfo.value = file[0].name;
+      };
+
+      document
+        .querySelector("form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // 阻止表单正常提交
+
+          var token = document.getElementById("token");
+          var img = document.getElementById("img");
+          var info = document.getElementById("info");
+          var type = document.getElementById("type");
+          console.log(img.files)
+          if (token.value=="" || img.files.length==0 || info == "" || type == ""){
+            alert("请填写所有信息")
+            return
+          }
+
+          var url = event.target.action; // 获取表单的action URL
+
+          fetch(url, {
+            method: "POST",
+            body: new FormData(event.target), // 从表单创建一个FormData对象
+          })
+            .then((response) => response.json()) // 从响应中解析JSON
+            .then((data) => {
+              alert(data.message)
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        });
+    </script>
+  </body>
 </html>

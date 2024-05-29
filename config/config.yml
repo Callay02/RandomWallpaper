@@ -2,6 +2,7 @@ server:
   host: 
   port: 
   imgsavepath: 
+  token: true
 mysql:
   host: 
   port: 
