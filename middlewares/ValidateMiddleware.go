@@ -3,6 +3,7 @@ package middlewares
 import (
 	"RandomWallpaper/models"
 	"RandomWallpaper/utils"
+	"fmt"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -22,6 +23,7 @@ func (Validate) Token(ctx *gin.Context) {
 	if err := utils.DB.Where("token = ? and state = ?", token, 1).First(&u).Error; err != nil {
 		ctx.AbortWithStatusJSON(200, new(utils.Result).Error("token错误"))
 	}
+	fmt.Println(u)
 	ctx.Set("uid", u.Id)
 }
 

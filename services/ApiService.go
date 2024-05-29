@@ -68,7 +68,6 @@ func (ApiService) UpLoad(ctx *gin.Context) {
 			image.State = 0
 			return
 		}
-		//fmt.Println(image.Url)
 	} else {
 		//本地
 		image.Source = "local"
