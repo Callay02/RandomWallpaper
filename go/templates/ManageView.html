@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>图片管理</title>
+  </head>
+  <body style="margin-top: 0px; margin-left: 0px">
+    <div
+      style="
+        background-image: linear-gradient(-20deg, #e9defa 0%, #fbfcdb 100%);
+        height: 100vh;
+        width: 100vw;
+      "
+    >
+      <form action="/api/getTypeList" method="post">
+        <div style="display: flex; align-items: center">
+          <p>Token:</p>
+          <input style="margin-left: 5px" type="password" id="token" />
+          <input style="margin-left: 5px" type="submit" value="确定" />
+        </div>
+      </form>
+    </div>
+    <script>
+      document
+        .querySelector("form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // 阻止表单正常提交
+
+          var token = document.getElementById("token");
+          if (token.value == "") {
+            alert("请输入token");
+            return;
+          }
+
+          var url = event.target.action; // 获取表单的action URL
+
+          fetch(url, {
+            method: "POST",
+            body: new FormData(event.target), // 从表单创建一个FormData对象
+          })
+            .then((response) => response.json()) // 从响应中解析JSON
+            .then((data) => {
+              alert(data.message);
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        });
+    </script>
+  </body>
+</html>
